@@ -12,6 +12,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using TShockAPI;
 using System.Linq;
 using System.Reflection;
@@ -19,6 +20,7 @@ using System.Text;
 using Terraria;
 using TerrariaApi;
 using TerrariaApi.Server;
+using TShockAPI.Hooks;
 
 namespace TestPlugin
 {
@@ -96,7 +98,7 @@ namespace TestPlugin
         private bool[] Shine = new bool[256]; //why?
         private bool[] Panic = new bool[256];
 
-        private DateTime LastCheck = DateTime.UtcNow;
+        public DateTime LastCheck = DateTime.UtcNow;
 
         protected override void Dispose(bool disposing)
         {
@@ -104,10 +106,12 @@ namespace TestPlugin
             {
                 ServerApi.Hooks.ServerLeave.Deregister(this, OnLeave); 
                 ServerApi.Hooks.GameUpdate.Deregister(this, OnUpdate);
+                ServerApi.Hooks.NetSendBytes.Deregister(this, OnSendBytes);
             }
             base.Dispose(disposing);
         }
 
+        
         void OnUpdate(EventArgs args)
         {
             if ((DateTime.UtcNow - LastCheck).TotalSeconds > 1)
@@ -120,7 +124,28 @@ namespace TestPlugin
                     if (Panic[i])
                         TShock.Players[i].SetBuff(63, 3600, true);
                 }
-                 
+
+                foreach (var ePly in esPlayers)
+                {
+                    if (ePly == null)
+                    {
+                        continue;
+                    }
+                    if (ePly.ptTime > -1.0)
+                    {
+                        ePly.ptTime += 60.0;
+                        if (!ePly.ptDay && ePly.ptTime > 32400.0)
+                        {
+                            ePly.ptDay = true;
+                            ePly.ptTime = 0.0;
+                        }
+                        else if (ePly.ptDay && ePly.ptTime > 54000.0)
+                        {
+                            ePly.ptDay = false;
+                            ePly.ptTime = 0.0;
+                        }
+                    }
+                }
             }
         }
 
@@ -128,6 +153,25 @@ namespace TestPlugin
         {
             Shine[args.Who] = false;
             Panic[args.Who] = false;
+        }
+
+        void OnSendBytes(SendBytesEventArgs args)
+        {
+            if ((args.Buffer[4] != 7 && args.Buffer[4] != 18) || args.Socket.whoAmI < 0 || args.Socket.whoAmI > 255 || esPlayers[args.Socket.whoAmI].ptTime < 0.0)
+            {
+                return;
+            }
+            switch (args.Buffer[4])
+            {
+                case 7:
+                        Buffer.BlockCopy(BitConverter.GetBytes((int)esPlayers[args.Socket.whoAmI].ptTime), 0, args.Buffer, 5, 4);
+                        args.Buffer[9] = (byte)(esPlayers[args.Socket.whoAmI].ptDay ? 1 : 0);
+                        break;
+                case 18:
+                        args.Buffer[5] = (byte)(esPlayers[args.Socket.whoAmI].ptDay ? 1 : 0);
+					    Buffer.BlockCopy(BitConverter.GetBytes((int)esPlayers[args.Socket.whoAmI].ptTime), 0, args.Buffer, 6, 4);
+					    break;
+            }
         }
 
         /* This must be implemented in every plugin.  However, it is up to you whether you want to put code here.
@@ -174,6 +218,7 @@ namespace TestPlugin
              */
             ServerApi.Hooks.GameUpdate.Register(this, OnUpdate);
             ServerApi.Hooks.ServerLeave.Register(this, OnLeave);
+            ServerApi.Hooks.NetSendBytes.Register(this, OnSendBytes);
         }
 
         /* This can be private, public, static, etc.
@@ -209,8 +254,11 @@ namespace TestPlugin
             }
         }
 
+        public esPlayer[] esPlayers = new esPlayer[256];
         private void Buildmode(CommandArgs args)
         {
+            var Ply = args.Player;
+
             if (args.Player != null)
             {
                 /*Will buff player with shine and panic (for speed)
@@ -227,6 +275,12 @@ namespace TestPlugin
                 {
                     args.Player.SendSuccessMessage("Disabled Buildmode!");
                 }
+                /*Using ptime from Scavenger's Essentials
+                 */
+                esPlayer ePly = esPlayers[Ply.Index];
+                ePly.ptDay = true;
+                ePly.ptTime = 27000.0;
+                Ply.SendData(PacketTypes.TimeSet, "", 0, Main.sunModY, Main.moonModY);
             }
         }
     }

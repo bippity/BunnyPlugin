@@ -93,22 +93,23 @@ namespace TestPlugin
 
         /*Copying format from Loganizer's "Ultrabuff" plugin
          */
-        private bool[] Shine = new bool[256]; //why?
+        private bool[] Shine = new bool[256];
         private bool[] Panic = new bool[256];
 
         private DateTime LastCheck = DateTime.UtcNow;
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing) //something wrong; check wiki/tutorials.
+            if (disposing) //no idea what I'm doing; check wiki/tutorials.
             {
-                ServerApi.Hooks.ServerLeave.Deregister(this, OnLeave); 
+                //ServerApi.Hooks.ServerChat.Deregister();
+                ServerApi.Hooks.ServerLeave.Deregister(this, OnLeave);
                 ServerApi.Hooks.GameUpdate.Deregister(this, OnUpdate);
             }
             base.Dispose(disposing);
         }
 
-        void OnUpdate(EventArgs args)
+        void OnUpdate()
         {
             if ((DateTime.UtcNow - LastCheck).TotalSeconds > 1)
             {
@@ -120,14 +121,13 @@ namespace TestPlugin
                     if (Panic[i])
                         TShock.Players[i].SetBuff(63, 3600, true);
                 }
-                 
             }
         }
 
-        void OnLeave(LeaveEventArgs args)
+        void OnLeave(int plr)
         {
-            Shine[args.Who] = false;
-            Panic[args.Who] = false;
+            Shine[plr] = false;
+            Panic[plr] = false;
         }
 
         /* This must be implemented in every plugin.  However, it is up to you whether you want to put code here.
@@ -215,8 +215,10 @@ namespace TestPlugin
             {
                 /*Will buff player with shine and panic (for speed)
                  */
+                //args.Player.SetBuff(63, 3600, true);
+                //args.Player.SetBuff(11, 3600, true);
 
-                Shine[args.Player.Index] = !Shine[args.Player.Index]; //check what this does
+                Shine[args.Player.Index] = !Shine[args.Player.Index];
                 Panic[args.Player.Index] = !Panic[args.Player.Index];
                 
                 if(Shine[args.Player.Index] && Panic[args.Player.Index])

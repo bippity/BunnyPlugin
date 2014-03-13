@@ -11,9 +11,11 @@
  */
 
 using System;
-
+using System.Collections.Generic;
 using TShockAPI;
-
+using System.Linq;
+using System.Reflection;
+using System.Text;
 using Terraria;
 using TerrariaApi;
 using TerrariaApi.Server;
@@ -86,7 +88,46 @@ namespace TestPlugin
             /*TShock by default runs at order 0.  If you wish to load before tshock (for overriding tshock handlers)
              * set Order to a positive number.  If you want to wait until tshock has finished loading, set Order < 0
              */
-           // Order = -4;
+            Order = 1;
+        }
+
+        /*Copying format from Loganizer's "Ultrabuff" plugin
+         */
+        private bool[] Shine = new bool[256];
+        private bool[] Panic = new bool[256];
+
+        private DateTime LastCheck = DateTime.UtcNow;
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing) //no idea what I'm doing; check wiki/tutorials.
+            {
+                //ServerApi.Hooks.ServerChat.Deregister();
+                ServerApi.Hooks.ServerLeave.Deregister(this, OnLeave);
+                ServerApi.Hooks.GameUpdate.Deregister(this, OnUpdate);
+            }
+            base.Dispose(disposing);
+        }
+
+        void OnUpdate()
+        {
+            if ((DateTime.UtcNow - LastCheck).TotalSeconds > 1)
+            {
+                LastCheck = DateTime.UtcNow;
+                for(int i = 0; i < 256; i++)
+                {
+                    if (Shine[i])
+                        TShock.Players[i].SetBuff(11, 3600, true);
+                    if (Panic[i])
+                        TShock.Players[i].SetBuff(63, 3600, true);
+                }
+            }
+        }
+
+        void OnLeave(int plr)
+        {
+            Shine[plr] = false;
+            Panic[plr] = false;
         }
 
         /* This must be implemented in every plugin.  However, it is up to you whether you want to put code here.
@@ -131,6 +172,8 @@ namespace TestPlugin
              * You could extend it by doing this:
              * Commands.ChatCommands.Add(new Command(new List<string>() { "bunny1", "bunny2" }, Bunny, "bunny", "rabbit"));
              */
+            ServerApi.Hooks.GameUpdate.Register(this, OnUpdate);
+            ServerApi.Hooks.ServerLeave.Register(this, OnLeave);
         }
 
         /* This can be private, public, static, etc.
@@ -172,8 +215,20 @@ namespace TestPlugin
             {
                 /*Will buff player with shine and panic (for speed)
                  */
-                args.Player.SetBuff(63, 3600, true);
-                args.Player.SetBuff(11, 3600, true);
+                //args.Player.SetBuff(63, 3600, true);
+                //args.Player.SetBuff(11, 3600, true);
+
+                Shine[args.Player.Index] = !Shine[args.Player.Index];
+                Panic[args.Player.Index] = !Panic[args.Player.Index];
+                
+                if(Shine[args.Player.Index] && Panic[args.Player.Index])
+                {
+                    args.Player.SendSuccessMessage("Enabled Buildmode!");
+                }
+                else
+                {
+                    args.Player.SendSuccessMessage("Disabled Buildmode!");
+                }
             }
         }
     }

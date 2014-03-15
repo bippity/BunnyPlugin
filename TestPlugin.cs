@@ -159,6 +159,8 @@ namespace TestPlugin
              */
             Commands.ChatCommands.Add(new Command("tshock.bunny", Bunny, "bunny"));
             Commands.ChatCommands.Add(new Command("tshock.buildmode", Buildmode, "buildmode"));
+            //Commands.ChatCommands.Add(new Command("tshock.clearinv", Clearinv, "clearinv")); //todo: add clearinv command
+
             /*
              * So this adds a new command that can be executed by typing /bunny while in game. It has no permission
              * so anyone can use it.
@@ -166,6 +168,8 @@ namespace TestPlugin
              * You could extend it by doing this:
              * Commands.ChatCommands.Add(new Command(new List<string>() { "bunny1", "bunny2" }, Bunny, "bunny", "rabbit"));
              */
+
+            //hooks
             ServerApi.Hooks.GameUpdate.Register(this, OnUpdate);
             ServerApi.Hooks.ServerLeave.Register(this, OnLeave);
         }
@@ -192,6 +196,7 @@ namespace TestPlugin
          * More advanced users may find having the Player object that terraria uses useful.  That is also included
          * in CommandArgs.
          */
+
         private void Bunny(CommandArgs args)
         {
             /* Not sure why we do this, force of habbit.
@@ -214,13 +219,12 @@ namespace TestPlugin
             }
         }
 
+        /* Will repeatedly buff player with the buffs presented below for 5 seconds.
+         */
         private void Buildmode(CommandArgs args)
         {
             if (args.Player != null)
             {
-                /*Will repeatedly buff player with the buffs presented below.
-                 */
-
                 Shine[args.Player.Index] = !Shine[args.Player.Index]; //Turns method on/off
                 Panic[args.Player.Index] = !Panic[args.Player.Index];
                 WaterWalk[args.Player.Index] = !WaterWalk[args.Player.Index];

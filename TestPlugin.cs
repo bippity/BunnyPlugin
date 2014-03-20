@@ -159,7 +159,7 @@ namespace TestPlugin
              */
             Commands.ChatCommands.Add(new Command("tshock.bunny", Bunny, "bunny"));
             Commands.ChatCommands.Add(new Command("tshock.buildmode", Buildmode, "buildmode"));
-            //Commands.ChatCommands.Add(new Command("tshock.clearinv", Clearinv, "clearinv")); //todo: add clearinv command
+            Commands.ChatCommands.Add(new Command("tshock.clearinv", Clearinv, "clearinv")); //todo: add clearinv command
 
             /*
              * So this adds a new command that can be executed by typing /bunny while in game. It has no permission
@@ -238,6 +238,11 @@ namespace TestPlugin
                     args.Player.SendSuccessMessage("Disabled Buildmode!");
                 }
             }
+        }
+        
+        private void Clearinv (CommandArgs args)
+        {
+            //stuff
         }
     }
 }

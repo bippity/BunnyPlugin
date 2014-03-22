@@ -96,6 +96,7 @@ namespace TestPlugin
         private bool[] Shine = new bool[256]; //why 256?
         private bool[] Panic = new bool[256];
         private bool[] WaterWalk = new bool[256];
+        private bool[] NightOwl = new bool[256];
 
         private DateTime LastCheck = DateTime.UtcNow;
 
@@ -112,6 +113,8 @@ namespace TestPlugin
                         TShock.Players[i].SetBuff(63, 300, true);
                     if (WaterWalk[i])
                         TShock.Players[i].SetBuff(15, 300, true);
+                    if (NightOwl[i])
+                        TShock.Players[i].SetBuff(15, 300, true);
                 }
                  
             }
@@ -122,6 +125,7 @@ namespace TestPlugin
             Shine[args.Who] = false;
             Panic[args.Who] = false;
             WaterWalk[args.Who] = false;
+            NightOwl[args.Who] = false;
         }
 
         /* This must be implemented in every plugin.  However, it is up to you whether you want to put code here.
@@ -228,6 +232,7 @@ namespace TestPlugin
                 Shine[args.Player.Index] = !Shine[args.Player.Index]; //Turns method on/off
                 Panic[args.Player.Index] = !Panic[args.Player.Index];
                 WaterWalk[args.Player.Index] = !WaterWalk[args.Player.Index];
+                NightOwl[args.Player.Index] = !NightOwl[args.Player.Index];
                 
                 if(Shine[args.Player.Index] && Panic[args.Player.Index])
                 {

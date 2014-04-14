@@ -12,6 +12,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using TShockAPI;
 using System.Linq;
 using System.Reflection;
@@ -91,42 +92,7 @@ namespace TestPlugin
             Order = 1;
         }
 
-        /*Copying format from Loganizer's "Ultrabuff" plugin
-         */
-        private bool[] Shine = new bool[256]; //why 256?
-        private bool[] Panic = new bool[256];
-        private bool[] WaterWalk = new bool[256];
-        private bool[] NightOwl = new bool[256];
 
-        private DateTime LastCheck = DateTime.UtcNow;
-
-        void OnUpdate(EventArgs args)
-        {
-            if ((DateTime.UtcNow - LastCheck).TotalSeconds > 1)
-            {
-                LastCheck = DateTime.UtcNow;
-                for(int i = 0; i < 256; i++)
-                {
-                    if (Shine[i])
-                        TShock.Players[i].SetBuff(11, 300, true); //60 units of 2nd param = 1 second
-                    if (Panic[i])
-                        TShock.Players[i].SetBuff(63, 300, true);
-                    if (WaterWalk[i])
-                        TShock.Players[i].SetBuff(15, 300, true);
-                    if (NightOwl[i])
-                        TShock.Players[i].SetBuff(15, 300, true);
-                }
-                 
-            }
-        }
-
-        void OnLeave(LeaveEventArgs args)
-        {
-            Shine[args.Who] = false;
-            Panic[args.Who] = false;
-            WaterWalk[args.Who] = false;
-            NightOwl[args.Who] = false;
-        }
 
         /* This must be implemented in every plugin.  However, it is up to you whether you want to put code here.
          * This is called by the server after your plugin has been initialized (see order above).
@@ -162,8 +128,7 @@ namespace TestPlugin
              * Easy right?
              */
             Commands.ChatCommands.Add(new Command("tshock.bunny", Bunny, "bunny"));
-            Commands.ChatCommands.Add(new Command("tshock.buildmode", Buildmode, "buildmode"));
-            Commands.ChatCommands.Add(new Command("tshock.clearinv", Clearinv, "clearinv")); //todo: add clearinv command
+            Commands.ChatCommands.Add(new Command("tshock.clearinv", ClearInventory, "invreset"));
 
             /*
              * So this adds a new command that can be executed by typing /bunny while in game. It has no permission
@@ -173,21 +138,9 @@ namespace TestPlugin
              * Commands.ChatCommands.Add(new Command(new List<string>() { "bunny1", "bunny2" }, Bunny, "bunny", "rabbit"));
              */
 
-            //hooks
-            ServerApi.Hooks.GameUpdate.Register(this, OnUpdate);
-            ServerApi.Hooks.ServerLeave.Register(this, OnLeave);
         }
 
-        //Dispose Method
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                ServerApi.Hooks.ServerLeave.Deregister(this, OnLeave);
-                ServerApi.Hooks.GameUpdate.Deregister(this, OnUpdate);
-            }
-            base.Dispose(disposing);
-        }
+
 
         /* This can be private, public, static, etc.
          * Notice that the method name is the same as above.
@@ -222,32 +175,85 @@ namespace TestPlugin
                 args.Player.SendSuccessMessage("Thanks for supporting our server!");
             }
         }
-
-        /* Will repeatedly buff player with the buffs presented below for 5 seconds.
-         */
-        private void Buildmode(CommandArgs args)
+        
+        private void ClearInventory (CommandArgs args)
         {
-            if (args.Player != null)
+            TSPlayer player = args.Player;
+            if (player != null)
             {
-                Shine[args.Player.Index] = !Shine[args.Player.Index]; //Turns method on/off
-                Panic[args.Player.Index] = !Panic[args.Player.Index];
-                WaterWalk[args.Player.Index] = !WaterWalk[args.Player.Index];
-                NightOwl[args.Player.Index] = !NightOwl[args.Player.Index];
-                
-                if(Shine[args.Player.Index] && Panic[args.Player.Index])
+                if (TShock.Config.ServerSideCharacter)
                 {
-                    args.Player.SendSuccessMessage("Enabled Buildmode!");
-                }
-                else
-                {
-                    args.Player.SendSuccessMessage("Disabled Buildmode!");
+                    for (int i = 0; i < NetItem.maxNetInventory; i++)
+                    {
+                        if (i < NetItem.maxNetInventory - (NetItem.armorSlots + NetItem.dyeSlots))
+                        {
+                            player.TPlayer.inventory[i].netDefaults(0);
+                        }
+                        else if (i < NetItem.maxNetInventory - NetItem.dyeSlots)
+                        {
+                            var index = i - (NetItem.maxNetInventory - (NetItem.armorSlots + NetItem.dyeSlots));
+                            player.TPlayer.armor[index].netDefaults(0);
+                        }
+                        else
+                        {
+                            var index = i - (NetItem.maxNetInventory - NetItem.dyeSlots);
+                            player.TPlayer.dye[index].netDefaults(0);
+                        }
+                    }
+
+                    for (int k = 0; k < 59; k++)
+                    {
+                        NetMessage.SendData(5, -1, -1, Main.player[player.Index].inventory[k].name, player.Index, (float)k, (float)Main.player[player.Index].inventory[k].prefix, 0f, 0);
+                    }
+                    NetMessage.SendData(5, -1, -1, Main.player[player.Index].armor[0].name, player.Index, 59f, (float)Main.player[player.Index].armor[0].prefix, 0f, 0);
+                    NetMessage.SendData(5, -1, -1, Main.player[player.Index].armor[1].name, player.Index, 60f, (float)Main.player[player.Index].armor[1].prefix, 0f, 0);
+                    NetMessage.SendData(5, -1, -1, Main.player[player.Index].armor[2].name, player.Index, 61f, (float)Main.player[player.Index].armor[2].prefix, 0f, 0);
+                    NetMessage.SendData(5, -1, -1, Main.player[player.Index].armor[3].name, player.Index, 62f, (float)Main.player[player.Index].armor[3].prefix, 0f, 0);
+                    NetMessage.SendData(5, -1, -1, Main.player[player.Index].armor[4].name, player.Index, 63f, (float)Main.player[player.Index].armor[4].prefix, 0f, 0);
+                    NetMessage.SendData(5, -1, -1, Main.player[player.Index].armor[5].name, player.Index, 64f, (float)Main.player[player.Index].armor[5].prefix, 0f, 0);
+                    NetMessage.SendData(5, -1, -1, Main.player[player.Index].armor[6].name, player.Index, 65f, (float)Main.player[player.Index].armor[6].prefix, 0f, 0);
+                    NetMessage.SendData(5, -1, -1, Main.player[player.Index].armor[7].name, player.Index, 66f, (float)Main.player[player.Index].armor[7].prefix, 0f, 0);
+                    NetMessage.SendData(5, -1, -1, Main.player[player.Index].armor[8].name, player.Index, 67f, (float)Main.player[player.Index].armor[8].prefix, 0f, 0);
+                    NetMessage.SendData(5, -1, -1, Main.player[player.Index].armor[9].name, player.Index, 68f, (float)Main.player[player.Index].armor[9].prefix, 0f, 0);
+                    NetMessage.SendData(5, -1, -1, Main.player[player.Index].armor[10].name, player.Index, 69f, (float)Main.player[player.Index].armor[10].prefix, 0f, 0);
+                    NetMessage.SendData(5, -1, -1, Main.player[player.Index].dye[0].name, player.Index, 70f, (float)Main.player[player.Index].dye[0].prefix, 0f, 0);
+                    NetMessage.SendData(5, -1, -1, Main.player[player.Index].dye[1].name, player.Index, 71f, (float)Main.player[player.Index].dye[1].prefix, 0f, 0);
+                    NetMessage.SendData(5, -1, -1, Main.player[player.Index].dye[2].name, player.Index, 72f, (float)Main.player[player.Index].dye[2].prefix, 0f, 0);
+                    NetMessage.SendData(4, -1, -1, player.Name, player.Index, 0f, 0f, 0f, 0);
+                    NetMessage.SendData(42, -1, -1, "", player.Index, 0f, 0f, 0f, 0);
+                    NetMessage.SendData(16, -1, -1, "", player.Index, 0f, 0f, 0f, 0);
+
+                    for (int k = 0; k < 59; k++)
+                    {
+                        NetMessage.SendData(5, player.Index, -1, Main.player[player.Index].inventory[k].name, player.Index, (float)k, (float)Main.player[player.Index].inventory[k].prefix, 0f, 0);
+                    }
+                    NetMessage.SendData(5, player.Index, -1, Main.player[player.Index].armor[0].name, player.Index, 59f, (float)Main.player[player.Index].armor[0].prefix, 0f, 0);
+                    NetMessage.SendData(5, player.Index, -1, Main.player[player.Index].armor[1].name, player.Index, 60f, (float)Main.player[player.Index].armor[1].prefix, 0f, 0);
+                    NetMessage.SendData(5, player.Index, -1, Main.player[player.Index].armor[2].name, player.Index, 61f, (float)Main.player[player.Index].armor[2].prefix, 0f, 0);
+                    NetMessage.SendData(5, player.Index, -1, Main.player[player.Index].armor[3].name, player.Index, 62f, (float)Main.player[player.Index].armor[3].prefix, 0f, 0);
+                    NetMessage.SendData(5, player.Index, -1, Main.player[player.Index].armor[4].name, player.Index, 63f, (float)Main.player[player.Index].armor[4].prefix, 0f, 0);
+                    NetMessage.SendData(5, player.Index, -1, Main.player[player.Index].armor[5].name, player.Index, 64f, (float)Main.player[player.Index].armor[5].prefix, 0f, 0);
+                    NetMessage.SendData(5, player.Index, -1, Main.player[player.Index].armor[6].name, player.Index, 65f, (float)Main.player[player.Index].armor[6].prefix, 0f, 0);
+                    NetMessage.SendData(5, player.Index, -1, Main.player[player.Index].armor[7].name, player.Index, 66f, (float)Main.player[player.Index].armor[7].prefix, 0f, 0);
+                    NetMessage.SendData(5, player.Index, -1, Main.player[player.Index].armor[8].name, player.Index, 67f, (float)Main.player[player.Index].armor[8].prefix, 0f, 0);
+                    NetMessage.SendData(5, player.Index, -1, Main.player[player.Index].armor[9].name, player.Index, 68f, (float)Main.player[player.Index].armor[9].prefix, 0f, 0);
+                    NetMessage.SendData(5, player.Index, -1, Main.player[player.Index].armor[10].name, player.Index, 69f, (float)Main.player[player.Index].armor[10].prefix, 0f, 0);
+                    NetMessage.SendData(5, player.Index, -1, Main.player[player.Index].dye[0].name, player.Index, 70f, (float)Main.player[player.Index].dye[0].prefix, 0f, 0);
+                    NetMessage.SendData(5, player.Index, -1, Main.player[player.Index].dye[1].name, player.Index, 71f, (float)Main.player[player.Index].dye[1].prefix, 0f, 0);
+                    NetMessage.SendData(5, player.Index, -1, Main.player[player.Index].dye[2].name, player.Index, 72f, (float)Main.player[player.Index].dye[2].prefix, 0f, 0);
+                    NetMessage.SendData(4, player.Index, -1, player.Name, player.Index, 0f, 0f, 0f, 0);
+                    NetMessage.SendData(42, player.Index, -1, "", player.Index, 0f, 0f, 0f, 0);
+                    NetMessage.SendData(16, player.Index, -1, "", player.Index, 0f, 0f, 0f, 0);
+
+                    if (player.InventorySlotAvailable)
+                    {
+                        player.GiveItem(-13, "", 0, 0, 1); //copper pickaxe
+                        player.GiveItem(-16, "", 0, 0, 1); //copper axe
+                        player.GiveItem(-15, "", 0, 0, 1); //copper shortsword
+                        player.SendSuccessMessage("Inventory reset to default!");
+                    }
                 }
             }
-        }
-        
-        private void Clearinv (CommandArgs args)
-        {
-            //stuff
         }
     }
 }

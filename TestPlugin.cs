@@ -14,6 +14,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using TShockAPI;
+using TShockAPI.Hooks;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -137,9 +138,25 @@ namespace TestPlugin
              * Commands.ChatCommands.Add(new Command(new List<string>() { "bunny1", "bunny2" }, Bunny, "bunny", "rabbit"));
              */
 
+            PlayerHooks.PlayerPostLogin += PostLogin;
         }
 
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                PlayerHooks.PlayerPostLogin -= PostLogin;
+            }
+            base.Dispose(disposing);
+        }
 
+        private void PostLogin(PlayerPostLoginEventArgs args)
+        {
+            if (args.Player != null)
+            {
+                buff(args.Player);
+            }
+        }
 
         /* This can be private, public, static, etc.
          * Notice that the method name is the same as above.
@@ -160,19 +177,14 @@ namespace TestPlugin
              */
             if (args.Player != null)
             {
-                /* This method will set a specific buff on a player for a specified time.
-                 * 40 happens to be the buff for bunnies, and the complete list can be found
-                 * on the wiki.
-                 * 3600 refers to 3600 seconds.  Or 6 minutes.
-                 * the boolean was added recently, and I am not sure what its purpose is.
-                 * Use true unless told otherwise.
-                 */
-                args.Player.SetBuff(40, 3600, true);
-
-                /* Sends the defined string message to the player who executed the command
-                 */
-                args.Player.SendSuccessMessage("Thanks for supporting our server!");
+                buff(args.Player);
             }
+        }
+
+        private void buff(TSPlayer player)
+        {
+            player.SetBuff(40, 3600, true);
+            player.SendSuccessMessage("Thanks for supporting our server!");
         }
     }
 }

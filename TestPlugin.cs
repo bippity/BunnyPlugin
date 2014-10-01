@@ -154,6 +154,8 @@ namespace TestPlugin
         {
             if (args.Player != null)
             {
+                TSPlayer player = args.Player;
+                if (player.Group.HasPermission("tshock.bunny"))
                 buff(args.Player);
             }
         }

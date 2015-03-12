@@ -33,10 +33,10 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="TerrariaServer">
-      <HintPath>..\..\Documents\GitHub\Tshock refs\TerrariaServer.exe</HintPath>
+      <HintPath>..\Tshock refs\TerrariaServer.exe</HintPath>
     </Reference>
     <Reference Include="TShockAPI">
-      <HintPath>..\..\Documents\GitHub\Tshock refs\TShockAPI.dll</HintPath>
+      <HintPath>..\Tshock refs\TShockAPI.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

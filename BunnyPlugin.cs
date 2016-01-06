@@ -22,7 +22,7 @@ using Terraria;
 using TerrariaApi;
 using TerrariaApi.Server;
 
-namespace TestPlugin
+namespace BunnyPlugin
 {
     /* This attribute is read by the server.  When it loads plugins, it only loads plugins with the same API Version.
      * When updating plugins, this needs to be changed, and often times, is the only thing that needs to change.
@@ -37,7 +37,7 @@ namespace TestPlugin
      * the suffix ": TerrariaPlugin" to the end of a class.  Please read up on class hierarchy for a more detailed
      * explaination of extends.
      */
-    public class TestPlugin : TerrariaPlugin
+    public class BunnyPlugin : TerrariaPlugin
     {
         /* Override this method of the "base" class.  Overriding a method means instead of using TerrariaPlugin's
          * default method, it will use this one, which you can customize to fit your liking. 
@@ -63,7 +63,7 @@ namespace TestPlugin
          */
         public override string Name
         {
-            get { return "TestPlugin"; }
+            get { return "BunnyPlugin"; }
         }
 
         /* This tells the plugin who wrote the plugin.
@@ -78,13 +78,13 @@ namespace TestPlugin
          */
         public override string Description
         {
-            get { return "Random Commands"; }
+            get { return "Bunny."; }
         }
 
         /* The constructor for your main class.  Make sure it has an argument of Main (you can call it whatever you want)
          * And make sure you pass it to the parent using " : base()"
          */
-        public TestPlugin(Main game)
+        public BunnyPlugin(Main game)
             : base(game)
         {
             /*TShock by default runs at order 0.  If you wish to load before tshock (for overriding tshock handlers)

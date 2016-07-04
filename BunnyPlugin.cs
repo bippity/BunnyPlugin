@@ -11,24 +11,18 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using TShockAPI;
 using TShockAPI.Hooks;
-using System.Linq;
-using System.Reflection;
-using System.Text;
 using Terraria;
-using TerrariaApi;
 using TerrariaApi.Server;
 
 namespace BunnyPlugin
 {
-    /* This attribute is read by the server.  When it loads plugins, it only loads plugins with the same API Version.
+	/* This attribute is read by the server.  When it loads plugins, it only loads plugins with the same API Version.
      * When updating plugins, this needs to be changed, and often times, is the only thing that needs to change.
      * EDIT: If you're updating a plugin from pre-1,14 to 1,14 you WILL need to change more than the ApiVersion!
      */
-    [ApiVersion(1, 22)]
+	[ApiVersion(1, 23)]
 
     /*This is your main class.  This is what gets constructed immediately after being loaded by the server.
      * What happens after that is dependant on order.

@@ -22,7 +22,7 @@ namespace BunnyPlugin
      * When updating plugins, this needs to be changed, and often times, is the only thing that needs to change.
      * EDIT: If you're updating a plugin from pre-1,14 to 1,14 you WILL need to change more than the ApiVersion!
      */
-	[ApiVersion(1, 26)]
+	[ApiVersion(2, 0)]
 
     /*This is your main class.  This is what gets constructed immediately after being loaded by the server.
      * What happens after that is dependant on order.
